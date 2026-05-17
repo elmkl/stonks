@@ -1,27 +1,14 @@
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from datetime import datetime
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers import brvm
 
-# models
-class Stock(BaseModel):
-    ticker: str = Field(..., description="stock ticker symbol")
-    exchange: str = Field(..., description="exchange acronym (e.g., JSE, BRVM, CSE)")
-    price: float
-    currency: str
-    timestamp: datetime
-    volume: Optional[int] = None
+app = FastAPI(title="stonks", description="EOD aggregator for African stock exchanges", version="0.1.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-class ErrorResponse(BaseModel):
-    detail: str
+app.include_router(brvm.router)
 
-# fastapi scaffolding
-app = FastAPI(
-    title="stonks API",
-    description="EOD aggregator for African stock exchanges",
-    version="0.1.0"
-)
+@app.get("/")
+async def root():
+    return {"name": "stonks", "version": "0.1.0", "exchanges": ["brvm"], "humans": "please go on /portal"}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# TODO: add /portal
