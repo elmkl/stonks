@@ -1,5 +1,4 @@
 fastapi
-uvicorn
+uvicorn[standard]
 httpx
 beautifulsoup4
-pydantic
