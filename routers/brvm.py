@@ -48,7 +48,7 @@ def _parse(data):
             continue
     return out
 
-@router.get("/brvm/{symbol}")
+@router.get("/{symbol}")
 async def ticker_history(symbol: str, length: int = 180):
     symbol = symbol.upper()
     try:
