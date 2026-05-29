@@ -9,6 +9,6 @@ app.include_router(brvm.router)
 
 @app.get("/")
 async def root():
-    return {"name": "stonks", "version": "0.1.0", "exchanges": ["brvm"], "humans": "please go on /portal"}
+    return {"name": "stonks", "version": "0.1.0", "exchanges": ["brvm", "casablanca"], "humans": "please go on /portal"}
 
 # TODO: add /portal

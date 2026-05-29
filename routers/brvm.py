@@ -65,7 +65,7 @@ async def all_stocks():
 
 @router.get("/market")
 async def market_overview():
-    # indices, market cap, open/close status
+    # indices, market cap, and the open/close status
     try:
         r = await http.get(f"{BRVMAX}/public/market-data")
         r.raise_for_status()
