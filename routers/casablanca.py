@@ -1,19 +1,20 @@
-# routers/cse.py
 import httpx
 from fastapi import APIRouter, HTTPException
 
-router = APIRouter(prefix="/cse", tags=["CSE"])
+router = APIRouter(prefix="/cse", tags=["Casablanca"])
 
 BASE = "https://www.casablanca-bourse.com"
 http = httpx.AsyncClient(
     timeout=15,
-    verify=False,  # their SSL chain is broken
+    # their ssl chains broken
+    verify=False,
     headers={
         "User-Agent": "Mozilla/5.0",
         "Referer": f"{BASE}/fr/live-market/equities",
     },
 )
 
+# data
 def _float(v, default=0.0):
     if isinstance(v, (int, float)):
         return float(v)
@@ -51,25 +52,7 @@ def _parse(data):
             continue
     return out
 
-@router.get("/{symbol}")
-async def equity(symbol: str):
-    # same fetch as all_equities, simply js filter
-    try:
-        r = await http.get(f"{BASE}/api/proxy/fr/api/bourse/dashboard/ticker", params={
-            "marche": 59, "class[0]": 25,
-        })
-        r.raise_for_status()
-    except Exception as e:
-        raise HTTPException(502, str(e))
-    data = r.json()
-    quotes = _parse(data)
-    match = next((q for q in quotes if q["symbol"].upper() == symbol.upper()), None)
-    if not match:
-        raise HTTPException(404, f"{symbol} not found on CSE")
-    return match
-
-@router.get("/")
-async def all_equities():
+async def _fetch():
     try:
         r = await http.get(f"{BASE}/api/proxy/fr/api/bourse/dashboard/ticker", params={
             "marche": 59, "class[0]": 25,
@@ -79,6 +62,19 @@ async def all_equities():
         raise HTTPException(502, str(e))
     data = r.json()
     if "data" not in data or "values" not in data.get("data", {}):
-        raise HTTPException(502, "bad response from CSE")
-    quotes = _parse(data)
+        raise HTTPException(502, "bad response from casablanca bourse")
+    return _parse(data)
+
+# rest endpoints
+@router.get("/")
+async def all_equities():
+    quotes = await _fetch()
     return {"exchange": "CSE", "count": len(quotes), "quotes": quotes}
+
+@router.get("/{symbol}")
+async def equity(symbol: str):
+    quotes = await _fetch()
+    match = next((q for q in quotes if q["symbol"].upper() == symbol.upper()), None)
+    if not match:
+        raise HTTPException(404, f"{symbol} not found on CSE")
+    return match
