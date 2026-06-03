@@ -8,6 +8,16 @@ router = APIRouter(prefix="/brvm", tags=["BRVM"])
 SIKA = "https://www.sikafinance.com"
 BRVMAX = "https://brvmax.com/api"
 EPOCH = datetime(1970, 1, 1)
+SUFFIX = {
+    "Cote d'Ivoire": "ci", # TODO: check if this is "Ivory Coast" or if Cote d'Ivoire is accented
+    "Senegal": "sn",
+    "Benin": "bj",
+    "Burkina Faso": "bf",
+    "Mali": "ml",
+    "Niger": "ne",
+    "Togo": "tg",
+    "Guinea-Bissau": "gw",
+}
 http = httpx.AsyncClient(timeout=15, headers={"User-Agent": "Mozilla/5.0"})
 
 # Helpers for historical data
@@ -82,13 +92,27 @@ async def brvm_index(length: int = 180):
 async def ticker_history(symbol: str, length: int = 180):
     # historical OHLCV from sikafinance
     symbol = symbol.upper()
+
+    # get country from brvmax to build the correct sikafinance symbol
     try:
-        token = await _token(symbol)
-        raw = await _ticks(symbol, length, token)
+        r = await http.get(f"{BRVMAX}/stocks", params={"assetType": "stock"})
+        stocks = r.json()
+        stock = next((s for s in stocks if s["ticker"] == symbol), None)
+        country = stock.get("country", "") if stock else ""
+        suffix = SUFFIX.get(country, "ci")
+        sika_symbol = f"{symbol}.{suffix}"
+    except Exception as e:
+        raise HTTPException(502, str(e))
+
+    # error handling for fethcing tokens and ticks
+    try:
+        token = await _token(sika_symbol)
+        raw = await _ticks(sika_symbol, length, token)
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(502, str(e))
+
     quotes = _parse(raw)
     return {
         "symbol": symbol,

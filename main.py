@@ -22,6 +22,14 @@ async def root():
         "humans": "please go on /portal",
         "docs": "/docs",
     }
- 
 
-# TODO: add /portal
+# portal for human users
+@app.get("/portal", response_class=HTMLResponse)
+async def portal():
+    path = pathlib.Path(__file__).parent / "portal.html"
+    return path.read_text()
+
+# in case one directly execute it
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
