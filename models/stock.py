@@ -8,7 +8,7 @@ class Quote(BaseModel):
     low: float
     close: float
     volume: int
-    currency: str = "XOF" # perhaps default should be MAD
+    currency: str = "XOF" # perhaps default should be MAD :D
 
 class Stock(BaseModel):
     symbol: str

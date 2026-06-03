@@ -1,32 +1,19 @@
 import httpx
 from fastapi import APIRouter, HTTPException
+from utils import find, _float
 
 router = APIRouter(prefix="/cse", tags=["Casablanca"])
 
 BASE = "https://www.casablanca-bourse.com"
 http = httpx.AsyncClient(
     timeout=15,
-    # their ssl chains broken
+    # SSL chain is misconfigured so we remove this for now
     verify=False,
     headers={
         "User-Agent": "Mozilla/5.0",
         "Referer": f"{BASE}/fr/live-market/equities",
     },
 )
-
-# data
-def _float(v, default=0.0):
-    if isinstance(v, (int, float)):
-        return float(v)
-    if isinstance(v, str):
-        v = v.strip()
-        if v in ("-", ""):
-            return default
-        try:
-            return float(v)
-        except ValueError:
-            return default
-    return default
 
 def _parse(data):
     out = []
@@ -65,7 +52,6 @@ async def _fetch():
         raise HTTPException(502, "bad response from casablanca bourse")
     return _parse(data)
 
-# rest endpoints
 @router.get("/")
 async def all_equities():
     quotes = await _fetch()
@@ -74,7 +60,7 @@ async def all_equities():
 @router.get("/{symbol}")
 async def equity(symbol: str):
     quotes = await _fetch()
-    match = next((q for q in quotes if q["symbol"].upper() == symbol.upper()), None)
+    match = find(quotes, "symbol", symbol)
     if not match:
         raise HTTPException(404, f"{symbol} not found on CSE")
     return match

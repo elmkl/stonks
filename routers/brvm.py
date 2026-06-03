@@ -10,7 +10,7 @@ BRVMAX = "https://brvmax.com/api"
 EPOCH = datetime(1970, 1, 1)
 http = httpx.AsyncClient(timeout=15, headers={"User-Agent": "Mozilla/5.0"})
 
-# sikafinance (historical data)
+# Helpers for historical data
 async def _token(symbol):
     r = await http.get(f"{SIKA}/marches/cotation_{symbol}")
     r.raise_for_status()
@@ -65,7 +65,7 @@ async def all_stocks():
 
 @router.get("/market")
 async def market_overview():
-    # indices, market cap, and the open/close status
+    # indices, market cap and the open/close status
     try:
         r = await http.get(f"{BRVMAX}/public/market-data")
         r.raise_for_status()
