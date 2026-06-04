@@ -21,19 +21,14 @@ def _parse(data):
         try:
             out.append({
                 "symbol": a.get("ticker", "?"),
-                "name": a.get("label", "?"),
-                "sector": a.get("sous_secteur", "?"),
+                "name": a.get("label"),
                 "price": _float(a.get("field_cours_courant")),
-                "open": _float(a.get("field_opening_price")),
-                "high": _float(a.get("field_high_price")),
-                "low": _float(a.get("field_low_price")),
-                "previous_close": _float(a.get("field_closing_price")),
-                "volume_shares": int(_float(a.get("field_cumul_titres_echanges"))),
-                "volume_value": _float(a.get("field_cumul_volume_echange")),
                 "change_pct": _float(a.get("field_var_veille")),
-                "last_traded": a.get("field_last_traded_time", ""),
-                "status": a.get("field_etat_cot_val", "-"),
+                "volume": int(_float(a.get("field_cumul_titres_echanges"))),
+                "market_cap": None,
                 "currency": "MAD",
+                "country": "Morocco",
+                "sector": a.get("sous_secteur"),
             })
         except (KeyError, ValueError):
             continue

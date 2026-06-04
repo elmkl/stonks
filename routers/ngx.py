@@ -17,10 +17,14 @@ async def _fetch(ticker_type):
     raw = r.json()
     return [{
         "symbol": t["SYMBOL"].strip(),
+        "name": None,
         "price": t["Value"],
         "change_pct": t["PercChange"],
-        "type": t["TickerType"].lower(),
+        "volume": None,
+        "market_cap": None,
         "currency": "NGN",
+        "country": "Nigeria",
+        "sector": None,
     } for t in raw]
 
 @router.get("/")

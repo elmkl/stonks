@@ -12,6 +12,11 @@ class Quote(BaseModel):
 
 class Stock(BaseModel):
     symbol: str
-    name: str
-    count: int
-    quotes: list[Quote] = []
+    name: Optional[str]
+    price: float
+    change_pct: float
+    volume: Optional[int]
+    market_cap: Optional[float]
+    currency: str
+    country: Optional[str]
+    sector: Optional[str]

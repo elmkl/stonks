@@ -9,7 +9,9 @@ SIKA = "https://www.sikafinance.com"
 BRVMAX = "https://brvmax.com/api"
 EPOCH = datetime(1970, 1, 1)
 SUFFIX = {
-    "Cote d'Ivoire": "ci", # TODO: check if this is "Ivory Coast" or if Cote d'Ivoire is accented
+    "Cote d'Ivoire": "ci", 
+    # TODO: check if this is "Ivory Coast" or if Cote d'Ivoire is accented
+    # seems like it is fine asis
     "Senegal": "sn",
     "Benin": "bj",
     "Burkina Faso": "bf",
@@ -70,7 +72,17 @@ async def all_stocks():
         r.raise_for_status()
     except Exception as e:
         raise HTTPException(502, str(e))
-    stocks = r.json()
+    stocks = [{
+        "symbol": s["ticker"],
+        "name": s.get("name"),
+        "price": s.get("price"),
+        "change_pct": s.get("changePercent"),
+        "volume": s.get("volume"),
+        "market_cap": s.get("marketCap"),
+        "currency": "XOF",
+        "country": s.get("country"),
+        "sector": s.get("sector"),
+    } for s in r.json()]
     return {"exchange": "BRVM", "count": len(stocks), "stocks": stocks}
 
 @router.get("/market")
