@@ -44,3 +44,6 @@ GET /ngx/{symbol}       single stock
 1. create `routers/yourexchange.py` with an `APIRouter`
 2. add `app.include_router(yourexchange.router)` in `main.py`
 3. add to the `exchanges` list in your root endpoint
+
+# Things for the future
+Add graphs/visualizer and more exchanges
