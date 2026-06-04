@@ -4,7 +4,7 @@ EOD (end of day) aggregator for African stock exchanges. Because everyone deserv
 ## exchanges
  
 | exchange | country | endpoint |
-|---|---|---|---|
+|---|---|---|
 | BRVM | West Africa (XOF) | `/brvm` |
 | CSE | Morocco (MAD) | `/cse` |
 | NGX | Nigeria (NGN) | `/ngx` |
