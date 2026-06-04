@@ -1,6 +1,8 @@
 # stonks
 EOD (end of day) aggregator for African stock exchanges. Because everyone deserves the right to (basically) gamble!!
 
+Available on my CI: https://stonks-0218.onrender.com/portal
+
 ## exchanges
  
 | exchange | country | endpoint |
@@ -47,3 +49,6 @@ GET /ngx/{symbol}       single stock
 
 # Things for the future
 Add graphs/visualizer and more exchanges
+
+# disclosure
+lines 18-48 casablanca.py, 9-28 ngx.py, 27-33 brvm.py, 36-47 brvm.py, 49-64 brvm.py, 75-85 brvm.py, 109-117 brvm.py, 170-185 portal.html, were generated w/ gemini (122 out of 500 loc, this makes about 25% AI). utils.py and 7-109 portal.html are from a different project of mine.
