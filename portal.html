@@ -117,7 +117,8 @@
 <div class="nav-links">
     <a href="/docs" target="_blank">API Docs</a> |
     <button type="button" onclick="switchTab('lookup')">Stock Lookup</button> |
-    <button type="button" onclick="switchTab('market')">Market Overview</button>
+    <button type="button" onclick="switchTab('market')">Market Overview</button> |
+    <button type="button" onclick="switchTab('search')">Search</button>
 </div>
 
 <div id="lookup" class="tab-content">
@@ -160,6 +161,19 @@
     </div>
 </div>
 
+<div id="search" class="tab-content" style="display:none">
+    <form id="searchForm">
+        <div class="form-group">
+            <label for="sq">Query:</label>
+            <input id="sq" placeholder="sonatel, ecobank, total..." />
+        </div>
+        <button type="submit">Search</button>
+    </form>
+    <div id="searchResFrame" class="results-box">
+        <pre id="searchRes"></pre>
+    </div>
+</div>
+
 <script>
     const exchangeConfig = {
         brvm: { url: '/brvm/', key: 'stocks', sym: 'symbol', name: 'name' },
@@ -187,6 +201,7 @@
     function switchTab(tab) {
         document.getElementById('lookup').style.display = tab === 'lookup' ? 'flex' : 'none';
         document.getElementById('market').style.display = tab === 'market' ? 'flex' : 'none';
+        document.getElementById('search').style.display = tab === 'search' ? 'flex' : 'none';
     }
 
     document.getElementById('lookupForm').onsubmit = async function(e) {
@@ -217,6 +232,24 @@
         try {
             const url = ex === 'brvm' ? '/brvm/market' : `/${ex}/`;
             const r = await fetch(url);
+            const d = await r.json();
+            pre.textContent = JSON.stringify(d, null, 2);
+        } catch(err) {
+            pre.textContent = 'error: ' + err;
+        }
+    };
+
+    document.getElementById('searchForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const q = document.getElementById('sq').value.trim();
+        const frame = document.getElementById('searchResFrame');
+        const pre = document.getElementById('searchRes');
+
+        frame.style.display = 'block';
+        pre.textContent = 'searching all exchanges...';
+
+        try {
+            const r = await fetch('/search?q=' + q);
             const d = await r.json();
             pre.textContent = JSON.stringify(d, null, 2);
         } catch(err) {

@@ -47,8 +47,8 @@ async def search(q: str):
     results = []
     exchanges = [
         (brvm_data, "BRVM", "stocks"),
-        (cse_data,  "CSE",  "quotes"),
-        (ngx_data,  "NGX",  "stocks"),
+        (cse_data, "CSE", "quotes"),
+        (ngx_data, "NGX", "stocks"),
     ]
 
     for data, exchange, key in exchanges:
