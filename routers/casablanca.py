@@ -138,3 +138,13 @@ async def equity(symbol: str):
     if not match:
         raise HTTPException(404, f"{symbol} not found on CSE")
     return match
+
+@router.get("/{symbol}/history")
+async def equity_history(symbol: str):
+    res = await _post(_action("VALEUR-GRAPH-APPL", {"Lang_": "fr", "Espace_": 1, "Symbol_": symbol}))
+    return res[0]["VALEUR-GRAPH-APPL"]["Data"]
+
+@router.get("/{symbol}/intraday")
+async def equity_intraday(symbol: str):
+    res = await _post(_action("VALEUR-INTRA", {"Lang_": "XX", "Espace_": 1, "symbol_": symbol}))
+    return res[0]["VALEUR-INTRA"]["Data"]
