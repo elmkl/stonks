@@ -51,4 +51,4 @@ GET /ngx/{symbol}       single stock
 Add graphs/visualizer and more exchanges
 
 # disclosure
-lines 18-48 casablanca.py, 9-28 ngx.py, 27-33 brvm.py, 36-47 brvm.py, 49-64 brvm.py, 75-85 brvm.py, 109-117 brvm.py, 170-185 portal.html, were generated w/ gemini (122 out of 500 loc, this makes about 25% AI). utils.py and 7-109 portal.html are from a different project of mine.
+lines 12-20, 22-28, 30-61, 83-100, 144-157 casablanca.py, 9-28 ngx.py, 27-33 brvm.py, 36-47 brvm.py, 49-64 brvm.py, 75-85 brvm.py, 109-117 brvm.py, 170-185 portal.html, were generated w/ gemini (170 out of ~650 loc, this makes about 26% AI). utils.py and 7-109 portal.html are from a different project of mine.
