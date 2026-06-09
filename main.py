@@ -7,7 +7,7 @@ from routers.casablanca import all_equities as cse_stocks
 from routers.ngx import all_equities as ngx_stocks
 import pathlib
 import asyncio
- 
+
 app = FastAPI(title="stonks", description="EOD aggregator for African stock exchanges", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 

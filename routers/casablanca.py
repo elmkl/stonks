@@ -4,7 +4,8 @@ from utils import find, _float
 
 router = APIRouter(prefix="/cse", tags=["Casablanca"])
 
-# cdgcapitalbourse.ma is CDG Capital Bourse's terminal API so we are using that instead of CSE
+# cdgcapitalbourse.ma is CDG Capital Bourse's terminal API
+# richer than casablanca-bourse.com — no SSL issues either
 BASE = "https://www.cdgcapitalbourse.ma/api/"
 http = httpx.AsyncClient(timeout=15, headers={"User-Agent": "Mozilla/5.0"})
 
@@ -18,7 +19,6 @@ def _action(name, params):
         ]
     }
 
-# for the POST requests
 async def _post(*actions):
     try:
         r = await http.post(BASE, json={"ACTIONS": list(actions)})
@@ -60,7 +60,6 @@ def _parse_stocks(data):
             continue
     return out
 
-# output all the equities
 @router.get("/")
 async def all_equities():
     res = await _post(_action("PALMARES-STOCKS", {
@@ -72,8 +71,7 @@ async def all_equities():
 
 @router.get("/market")
 async def market():
-    # MASI + market status + volume summary
-    # This is all in one request, pretty cool right?
+    # MASI + market status + volume summary — all in one request
     res = await _post(
         _action("INDICE-SYNTHESE", {"Lang_": "fr", "Espace_": 1, "IdPartener_": 1, "Indice_": "MASI"}),
         _action("MARKET-STATUS", {"Lang_": "fr", "Espace_": 1, "IdPartener_": 1, "NumSeq_": 0}),
@@ -123,7 +121,7 @@ async def currencies():
 
 @router.get("/agenda")
 async def agenda():
-    # upcoming events
+    # upcoming corporate events like dividends and detachments
     res = await _post(_action("AGENDA", {"Lang_": "fr", "Espace_": 1, "IdPartener_": 1, "Top_": 10}))
     return res[0]["AGENDA"]["Data"]
 
@@ -142,9 +140,24 @@ async def equity(symbol: str):
 @router.get("/{symbol}/history")
 async def equity_history(symbol: str):
     res = await _post(_action("VALEUR-GRAPH-APPL", {"Lang_": "fr", "Espace_": 1, "Symbol_": symbol}))
-    return res[0]["VALEUR-GRAPH-APPL"]["Data"]
+    raw = res[0]["VALEUR-GRAPH-APPL"]["Data"]
+    history = []
+    for entry in raw:
+        # convert DD/MM/YYYY to YYYY-MM-DD so the browser can parse it correctly
+        d, m, y = entry["DateCotation"].split(" ")[0].split("/")
+        history.append({
+            "date": f"{y}-{m}-{d}",
+            "open": entry["Ouverture"],
+            "high": entry["PlusHaut"],
+            "low": entry["PlusBas"],
+            "close": entry["Cloture"],
+            "volume": entry["Volume"],
+            "currency": "MAD",
+        })
+    return {"symbol": symbol, "count": len(history), "history": history}
 
 @router.get("/{symbol}/intraday")
 async def equity_intraday(symbol: str):
+    # note: symbol_ is lowercase here, since that is how the CDG API expects it
     res = await _post(_action("VALEUR-INTRA", {"Lang_": "XX", "Espace_": 1, "symbol_": symbol}))
     return res[0]["VALEUR-INTRA"]["Data"]
