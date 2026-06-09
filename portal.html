@@ -345,7 +345,6 @@
     }
 
     // --- stock lookup ---
-    // now the same for every exchange since the APIs are unified
 
     let priceChart = null;
     let fullHistory = [];
@@ -367,7 +366,7 @@
         fullHistory = [];
 
         try {
-            // live data, same endpoint pattern for all three exchanges now
+            // live data 
             const r = await fetch(`/${exchange}/${symbol}`);
             const stock = await r.json();
 
@@ -379,21 +378,16 @@
             return;
         }
 
-        // try to load history it works for CSE and BRVM, but silently skips for NGX FOR NOW
+        // try to load history
         try {
             const histR = await fetch(`/${exchange}/${symbol}/history`);
 
             if (histR.ok) {
                 const histData = await histR.json();
-
-                // CSE returns a raw array, BRVM returns {symbol, count, history: [...]}
-                const quotes = Array.isArray(histData) ? histData : (histData.history || []);
+                const quotes = histData.history || [];
 
                 fullHistory = quotes.map(function(entry) {
-                    // CSE uses DateCotation + Cloture, BRVM uses date + close
-                    const date = entry.date ? new Date(entry.date) : parseCSEDate(entry.DateCotation);
-                    const close = entry.close != null ? entry.close : entry.Cloture;
-                    return { date: date, close: close };
+                    return { date: new Date(entry.date), close: entry.close };
                 }).filter(function(entry) {
                     return entry.date && entry.close != null;
                 }).sort(function(a, b) {
@@ -409,12 +403,6 @@
         }
     };
 
-    function parseCSEDate(dateStr) {
-        // format is "09/06/2023 00:00:00"
-        const parts = dateStr.split(' ')[0].split('/');
-        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-    }
-
     function renderStockCard(exchange, symbol, stock) {
         const changePct = stock.change_pct ?? 0;
         const changeClass = changePct > 0 ? 'positive' : changePct < 0 ? 'negative' : '';
@@ -425,17 +413,17 @@
             : '';
 
         let detailsHtml = '';
-        if (stock.open != null) detailsHtml += `<div class="detail-item"><label>Open</label>${fmt(stock.open)}</div>`;
-        if (stock.high != null) detailsHtml += `<div class="detail-item"><label>High</label>${fmt(stock.high)}</div>`;
-        if (stock.low != null) detailsHtml += `<div class="detail-item"><label>Low</label>${fmt(stock.low)}</div>`;
+        if (stock.open != null) detailsHtml += `<div class="detail-item"><label>Open</label>${format(stock.open)}</div>`;
+        if (stock.high != null) detailsHtml += `<div class="detail-item"><label>High</label>${format(stock.high)}</div>`;
+        if (stock.low != null) detailsHtml += `<div class="detail-item"><label>Low</label>${format(stock.low)}</div>`;
         if (stock.volume != null) detailsHtml += `<div class="detail-item"><label>Volume</label>${stock.volume.toLocaleString()}</div>`;
-        if (stock.market_cap != null) detailsHtml += `<div class="detail-item"><label>Market Cap</label>${fmtCap(stock.market_cap)} ${stock.currency || ''}</div>`;
+        if (stock.market_cap != null) detailsHtml += `<div class="detail-item"><label>Market Cap</label>${formatCap(stock.market_cap)} ${stock.currency || ''}</div>`;
         if (stock.last_trade) detailsHtml += `<div class="detail-item"><label>Last Trade</label>${stock.last_trade}</div>`;
 
         document.getElementById('stockCard').innerHTML = `
             <div class="exchange-label">${exchange.toUpperCase()} - ${symbol}</div>
             <div class="stock-name">${stock.name || symbol}</div>
-            <div class="stock-price">${fmt(stock.price)} <span class="stock-currency">${stock.currency || ''}</span></div>
+            <div class="stock-price">${format(stock.price)} <span class="stock-currency">${stock.currency || ''}</span></div>
             <div class="stock-change ${changeClass}">${changeIcon} ${Math.abs(changePct).toFixed(2)}%</div>
             ${detailsHtml ? `<div class="stock-details">${detailsHtml}</div>` : ''}
         `;
@@ -568,16 +556,16 @@
         return `
             <div class="market-card">
                 <div class="index-label">MASI ${statusBadge}</div>
-                <div class="index-value">${fmt(marketData.value)}</div>
+                <div class="index-value">${format(marketData.value)}</div>
                 <div class="index-change ${changeClass}">${changeIcon} ${sign}${changePct.toFixed(2)}% &nbsp; ${sign}${marketData.change_val?.toFixed(2)} pts</div>
                 <div class="index-stats">
-                    <div><label>Open</label>${fmt(marketData.open)}</div>
-                    <div><label>Day High</label>${fmt(marketData.high)}</div>
-                    <div><label>Day Low</label>${fmt(marketData.low)}</div>
-                    <div><label>52w High</label>${fmt(marketData['52w_high'])}</div>
-                    <div><label>52w Low</label>${fmt(marketData['52w_low'])}</div>
-                    <div><label>Volume (MAD)</label>${fmtCap(marketData.volume)}</div>
-                    <div><label>Market Cap</label>${fmtCap(marketData.market_cap)}</div>
+                    <div><label>Open</label>${format(marketData.open)}</div>
+                    <div><label>Day High</label>${format(marketData.high)}</div>
+                    <div><label>Day Low</label>${format(marketData.low)}</div>
+                    <div><label>52w High</label>${format(marketData['52w_high'])}</div>
+                    <div><label>52w Low</label>${format(marketData['52w_low'])}</div>
+                    <div><label>Volume (MAD)</label>${formatCap(marketData.volume)}</div>
+                    <div><label>Market Cap</label>${formatCap(marketData.market_cap)}</div>
                     <div><label>Up / Flat / Down</label>${marketData.advances} / ${marketData.unchanged} / ${marketData.declines}</div>
                 </div>
             </div>
@@ -618,8 +606,8 @@
                 <div class="index-value">${indexValue != null ? indexValue.toLocaleString() : 'no data'}</div>
                 ${changePct != null ? `<div class="index-change ${changeClass}">${changeIcon} ${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%</div>` : ''}
                 <div class="index-stats">
-                    ${marketData.volume     != null ? `<div><label>Volume (XOF)</label>${fmtCap(marketData.volume)}</div>` : ''}
-                    ${marketData.market_cap != null ? `<div><label>Market Cap</label>${fmtCap(marketData.market_cap)}</div>` : ''}
+                    ${marketData.volume     != null ? `<div><label>Volume (XOF)</label>${formatCap(marketData.volume)}</div>` : ''}
+                    ${marketData.market_cap != null ? `<div><label>Market Cap</label>${formatCap(marketData.market_cap)}</div>` : ''}
                     ${marketData.status     != null ? `<div><label>Status</label>${marketData.status}</div>` : ''}
                 </div>
             </div>
@@ -673,12 +661,12 @@
 
     // --- helpers ---
 
-    function fmt(n) {
+    function format(n) {
         if (n == null) return 'N/A';
         return n.toLocaleString('fr', { minimumFractionDigits: 2 });
     }
 
-    function fmtCap(n) {
+    function formatCap(n) {
         if (n == null) return 'N/A';
         if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
         if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
@@ -689,4 +677,4 @@
     loadSymbols();
 </script>
 </body>
-</html>
+</html> 
