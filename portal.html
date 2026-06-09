@@ -161,6 +161,33 @@
         border-color: #000;
     }
 
+    /* raw response */
+    .raw-toggle {
+        font-family: inherit;
+        font-size: 0.85em;
+        color: #999;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        margin-bottom: 12px;
+        text-decoration: underline;
+    }
+    .raw-toggle:hover { color: #000; }
+
+    .raw-box {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-sizing: border-box;
+        margin-bottom: 16px;
+        text-align: left;
+        background: #f9f9f9;
+        overflow-x: auto;
+    }
+    .raw-box pre { margin: 0; font-size: 0.8em; white-space: pre-wrap; word-wrap: break-word; }
+
     /* market cards */
     .market-card {
         width: 100%;
@@ -274,9 +301,17 @@
 
     <div id="stockResult" style="display:none; width:100%">
         <div id="stockCard" class="stock-card"></div>
+        <button class="raw-toggle" onclick="toggleRaw('rawStock')">raw response</button>
+        <div id="rawStock" class="raw-box" style="display:none">
+            <pre id="rawStockPre"></pre>
+        </div>
         <div id="chartBox" class="chart-box" style="display:none">
             <div class="range-buttons" id="rangeButtons"></div>
             <canvas id="priceChart"></canvas>
+        </div>
+        <button id="rawHistBtn" class="raw-toggle" onclick="toggleRaw('rawHistory')" style="display:none">raw history</button>
+        <div id="rawHistory" class="raw-box" style="display:none">
+            <pre id="rawHistoryPre"></pre>
         </div>
     </div>
 </div>
@@ -344,6 +379,11 @@
         if (tab === 'agenda') loadAgenda();
     }
 
+    function toggleRaw(id) {
+        const box = document.getElementById(id);
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
     // --- stock lookup ---
 
     let priceChart = null;
@@ -363,14 +403,18 @@
         statusEl.textContent = 'loading...';
         resultEl.style.display = 'none';
         chartBox.style.display = 'none';
+        document.getElementById('rawStock').style.display = 'none';
+        document.getElementById('rawHistory').style.display = 'none';
+        document.getElementById('rawHistBtn').style.display = 'none';
         fullHistory = [];
 
         try {
-            // live data 
+            // live data
             const r = await fetch(`/${exchange}/${symbol}`);
             const stock = await r.json();
 
             renderStockCard(exchange, symbol, stock);
+            document.getElementById('rawStockPre').textContent = JSON.stringify(stock, null, 2);
             resultEl.style.display = 'block';
             statusEl.textContent = '';
         } catch (err) {
@@ -397,6 +441,9 @@
                 if (fullHistory.length > 0) {
                     setupChart();
                 }
+
+                document.getElementById('rawHistoryPre').textContent = JSON.stringify(histData, null, 2);
+                document.getElementById('rawHistBtn').style.display = 'block';
             }
         } catch (err) {
             // no history available, chart just stays hidden
@@ -606,9 +653,9 @@
                 <div class="index-value">${indexValue != null ? indexValue.toLocaleString() : 'no data'}</div>
                 ${changePct != null ? `<div class="index-change ${changeClass}">${changeIcon} ${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%</div>` : ''}
                 <div class="index-stats">
-                    ${marketData.volume     != null ? `<div><label>Volume (XOF)</label>${formatCap(marketData.volume)}</div>` : ''}
+                    ${marketData.volume != null ? `<div><label>Volume (XOF)</label>${formatCap(marketData.volume)}</div>` : ''}
                     ${marketData.market_cap != null ? `<div><label>Market Cap</label>${formatCap(marketData.market_cap)}</div>` : ''}
-                    ${marketData.status     != null ? `<div><label>Status</label>${marketData.status}</div>` : ''}
+                    ${marketData.status != null ? `<div><label>Status</label>${marketData.status}</div>` : ''}
                 </div>
             </div>
         `;
@@ -677,4 +724,4 @@
     loadSymbols();
 </script>
 </body>
-</html> 
+</html>
